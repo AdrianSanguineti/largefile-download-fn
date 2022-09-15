@@ -16,7 +16,7 @@ namespace ZipArchiveFn
     {
         [FunctionName("RequestDownload")]
         public static async Task<IActionResult> RequestDownload(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -34,15 +34,34 @@ namespace ZipArchiveFn
         }
 
         [FunctionName("Status")]
-        public static async Task<IActionResult> Status([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Status([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
-            // Read the request ID.
+            // TODO: Read the request ID.
+            var dirName = "";
+            var fileName = "";
+
+
+            var connectionString = Environment.GetEnvironmentVariable("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING");
+            var shareName = Environment.GetEnvironmentVariable("WEBSITE_CONTENTSHARE");
+            
+            ShareClient share = new ShareClient(connectionString, shareName);
+            ShareDirectoryClient directory = share.GetDirectoryClient(dirName);
+            
+            
+            var fileClient = directory.GetFileClient(fileName);
+            if (await fileClient.ExistsAsync())
+            {
+                return new OkObjectResult("File exists");
+            }
+
+            var file = await fileClient.DownloadAsync();
+            file.Value.Content
 
             return new OkObjectResult("H");
         }
 
         [FunctionName("Download")]
-        public static async Task<IActionResult> Download([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Download([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
             return new OkObjectResult("S");
         }
